@@ -1,0 +1,21 @@
+language: generic
+sudo: required 
+services: 
+  - docker 
+
+before_install:
+  - docker build -t smirniyhr/react-test -f ./client/Dockerfile.dev ./client
+
+scripts: 
+  - docker run smirniyhr/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t smirniyhr/multi-client ./client 
+  - docker build -t smirniyhr/multi-nginx ./nginx 
+  - docker build -t smirniyhr/multi-server ./server
+  - docker build -t smirniyhr/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push smirniyhr/multi-client
+  - docker push smirniyhr/multi-nginx
+  - docker push smirniyhr/multi-server
+  - docker push smirniyhr/multi-worker
